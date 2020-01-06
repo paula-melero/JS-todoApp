@@ -67,13 +67,25 @@ router.put('/:id', auth, async (req,res) => {
     try {
 
         const { title, description } = req.body;
-        
-        const task = await Task.findByIdAndUpdate(req.params.id, {
+
+        const task = await Task.findOneAndUpdate({ 
+            _id: req.params.id, 
+            createdBy: req.user._id
+        }, {
             $set: { title, description }
         }, { new: true } );
+        
+        
+        //findOne({_id: req.params.id, createdBy: req.user._id})
+
+        //mongoose.update
+        
+        // const task = await Task.findByIdAndUpdate(_req.params.id, {
+        //     $set: { title, description }
+        // }, { new: true } );
 
         if(!task) 
-            return res.status(404).send('Task with the given ID was not found');
+            return res.status(404).json('Task with the given ID was not found');
 
         res.status(200).json(task);
     }
