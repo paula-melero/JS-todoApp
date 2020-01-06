@@ -1,6 +1,5 @@
 require('dotenv').config();
-const winston = require('winston');
-const mongoose = require('mongoose');
+
 const config = require('config');
 const express = require('express');
 const app = express();
@@ -10,7 +9,6 @@ require('./startup/logging');
 
 const path = require('path');
 const startupDebugger = require('debug')('app:startup'); //debug module returns a function. We define an argument for the function with an arbitrary namespace
-const dbDebugger = require('debug')('app:db');
 const helmet = require('helmet'); //helps secure apps by setting various HTTP headers
 const morgan = require('morgan'); //logs HTTP requests
 const index_path = path.join(__dirname, './index.html');
