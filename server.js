@@ -4,7 +4,7 @@ const express = require('express');
 const app = express();
 require('./startup/routes')(app);
 require('./startup/db')(process.env);
-require('./startup/logging');
+require('./startup/logging')();
 
 const path = require('path');
 const startupDebugger = require('debug')('app:startup'); //debug module returns a function. We define an argument for the function with an arbitrary namespace
@@ -39,8 +39,7 @@ app.get('/', (req, res) => {
     res.sendFile(index_path);
 });
 
-//LISTEN ON PORT 
-const port = process.env.PORT || 3000; // env allows for dynamic allocation of port # 
+const port = process.env.PORT || 3000; 
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}...`);

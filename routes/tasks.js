@@ -67,7 +67,13 @@ router.put('/:id', auth, async (req,res) => {
     try {
 
         const { title, description } = req.body;
+        
+        const validTaskId = await Task.findById(req.params.id);
 
+        if(!validTaskId) 
+            return res.status(404).json('Task with the given ID was not found');
+
+        console.log(req.user._id);
         const task = await Task.findOneAndUpdate({ 
             _id: req.params.id, 
             createdBy: req.user._id
@@ -75,9 +81,8 @@ router.put('/:id', auth, async (req,res) => {
             $set: { title, description }
         }, { new: true } );
         
-
         if(!task) 
-            return res.status(404).json('Task with the given ID was not found');
+            return res.status(401).json('Access denied. Cannot edit task with given ID.');
 
         res.status(200).json(task);
     }
