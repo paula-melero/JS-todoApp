@@ -8,10 +8,6 @@ module.exports = function () {
     app.use(express.urlencoded({extended: true}));//key=value&key=value -> req.body. works for arrays and objects too
     app.use(express.static('public')); //used to serve static files in the public folder
     app.use(helmet());
-
-    //Log Config Settings
-    console.log('Application Name:' + config.get('name'));
-    console.log('Mail server:' + config.get('mail.host'));
         
     //ensure jwtPrivate key is set
     if(!process.env.jwtPrivateKey) {
