@@ -13,7 +13,7 @@ router.get(
       .select("-createdBy")
       .sort({ date: -1 })
       .skip((req.query.pageNumber - 1) * req.query.pageSize)
-      .limit(req.query.pageSize);
+      .limit(parseInt(req.query.pageSize));
 
     res.status(200).json(tasks);
   })
