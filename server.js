@@ -3,11 +3,16 @@ const config = require("config");
 const winston = require("winston");
 const express = require("express");
 const app = express();
+const index_path = path.join(__dirname, "./index.html");
 
 require("./startup/routes")(app);
 require("./startup/db")(process.env);
 require("./startup/logging")();
 require("./startup/config")();
+
+app.get("/", (req, res) => {
+  res.sendFile(index_path);
+});
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
