@@ -4,7 +4,7 @@ const winston = require("winston");
 const express = require("express");
 const app = express();
 const path = require("path");
-const index_path = path.join(__dirname, "./index.html");
+const index_path = path.join(__dirname, "/public");
 
 require("./startup/routes")(app);
 require("./startup/db")(process.env);
