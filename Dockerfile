@@ -8,6 +8,8 @@ RUN npm ci
 COPY . .
 EXPOSE 8080
 
+CMD export NODE_ENV=production
+
 # Define command to run app
 CMD [ "node", "server.js" ]
 

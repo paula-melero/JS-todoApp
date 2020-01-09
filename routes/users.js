@@ -3,50 +3,64 @@ const bcrypt = require("bcryptjs");
 const _ = require("lodash");
 const router = express.Router();
 const auth = require("../middleware/auth");
+const asyncMiddleware = require("../middleware/async");
 const admin = require("../middleware/admin");
 const { User, validateUser } = require("../models/users");
 
 //GET ALL USERS
-router.get("/", [auth, admin], async (req, res) => {
-  try {
-    const users = await User.find().sort({ username: 1 });
+router.get(
+  "/",
+  [auth, admin],
+  asyncMiddleware(async (req, res) => {
+    const users = await User.find()
+      .sort({ username: 1 })
+      .select("-password");
     //todo: paginate
     res.status(200).json(users);
-  } catch (err) {
-    next(err);
-  }
-});
+  })
+);
 
 //GET CURRENTLY LOGGED IN USER
-router.get("/me", auth, async (req, res) => {
-  try {
+router.get(
+  "/me",
+  auth,
+  asyncMiddleware(async (req, res) => {
+    //check auth rights
+    if (req.user._id !== req.params.id)
+      return res
+        .status(401)
+        .json({ message: "Access denied. Cannot edit user with given ID." });
+
     const user = await User.findById({ _id: req.user._id }).select("-password");
 
     if (!user)
-      return res.status(404).json("User with the given ID was not found");
+      return res
+        .status(404)
+        .json({ message: "User with the given ID was not found" });
 
     res.status(200).json(user);
-  } catch (err) {
-    next(err);
-  }
-});
+  })
+);
 
 //REGISTER A USER
-router.post("/", async (req, res) => {
-  const { error } = validateUser(req.body);
+router.post(
+  "/",
+  asyncMiddleware(async (req, res) => {
+    const { error } = validateUser(req.body);
 
-  if (error) return res.status(400).json(error.details[0].message);
+    if (error) return res.status(400).json(error.details[0].message);
 
-  const { username, password, repeat_password } = req.body;
-  try {
+    const { username, password, repeat_password } = req.body;
+
     let user = await User.findOne({ username });
 
     //check if username exists
-    if (user) return res.status(400).json("Username already exists");
+    if (user)
+      return res.status(400).json({ message: "Username already exists" });
 
     //check if passwords match
     if (password !== repeat_password)
-      res.status(400).json("Passwords don't match");
+      res.status(400).json({ message: "Passwords don't match" });
 
     //hash password
     const salt = await bcrypt.genSalt(10);
@@ -62,18 +76,24 @@ router.post("/", async (req, res) => {
     //return token in HTTP header
     res.header("x-auth-token", token);
     res.status(200).json(_.pick(user, ["_id", "username"]));
-  } catch (err) {
-    next(err);
-  }
-});
+  })
+);
 
 //UPDATE USER
-router.put("/:id", auth, async (req, res) => {
-  const { error } = validateUser(req.body);
+router.put(
+  "/:id",
+  auth,
+  asyncMiddleware(async (req, res) => {
+    const { error } = validateUser(req.body);
 
-  if (error) return res.status(400).json(error.details[0].message);
+    if (error) return res.status(400).json(error.details[0].message);
 
-  try {
+    //check auth rights
+    if (req.user._id !== req.params.id)
+      return res
+        .status(401)
+        .json({ message: "Access denied. Cannot edit user with given ID." });
+
     const { username, password } = req.body;
 
     //hash password
@@ -81,7 +101,7 @@ router.put("/:id", auth, async (req, res) => {
     const hash = await bcrypt.hash(password, salt);
 
     const user = await User.findByIdAndUpdate(
-      req.params.id,
+      req.user._id,
       {
         $set: { username, password: hash }
       },
@@ -89,26 +109,28 @@ router.put("/:id", auth, async (req, res) => {
     );
 
     if (!user)
-      return res.status(404).json("User with the given ID was not found");
+      return res
+        .status(404)
+        .json({ message: "User with the given ID was not found" });
 
     res.status(200).json(user);
-  } catch (err) {
-    next(err);
-  }
-});
+  })
+);
 
 //DELETE USER
-router.delete("/:id", [auth, admin], async (req, res) => {
-  try {
-    const result = await User.deleteOne({ _id: req.params.id });
+router.delete(
+  "/:id",
+  [auth, admin],
+  asyncMiddleware(async (req, res) => {
+    const result = await User.findByIdAndDelete(req.params.id);
 
-    if (!result.n)
-      return res.status(404).json("User with the given ID was not found");
+    if (!result)
+      return res
+        .status(404)
+        .json({ message: "User with the given ID was not found" });
 
     res.status(200).json(result);
-  } catch (err) {
-    next(err);
-  }
-});
+  })
+);
 
 module.exports = router;
