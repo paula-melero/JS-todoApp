@@ -1,6 +1,6 @@
 const request = require("supertest"); //function used to make HTTP requests
 
-describe("api/users", () => {
+describe("api/tasks", () => {
   let server;
 
   beforeEach(() => {

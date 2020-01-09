@@ -11,9 +11,10 @@ router.get(
   asyncMiddleware(async (req, res, next) => {
     const tasks = await Task.find({ createdBy: req.user._id })
       .select("-createdBy")
-      .sort({ date: -1 });
-    //pagination
-    //   .skip((req.query.pageNumber - 1) * req.query.pageSize)
+      .sort({ date: -1 })
+      .skip((req.query.pageNumber - 1) * req.query.pageSize)
+      .limit(req.query.pageSize);
+
     res.status(200).json(tasks);
   })
 );

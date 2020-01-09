@@ -14,8 +14,10 @@ router.get(
   asyncMiddleware(async (req, res) => {
     const users = await User.find()
       .sort({ username: 1 })
-      .select("-password");
-    //todo: paginate
+      .select("-password")
+      .skip((req.query.pageNumber - 1) * req.query.pageSize)
+      .limit(req.query.pageSize);
+
     res.status(200).json(users);
   })
 );
