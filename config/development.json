@@ -1,7 +1,7 @@
 {
-    "name": "JS-todoApp - Development",
-    "mail": {
-        "host": "dev-mail-server"
-    },
-    "db": "mongodb://localhost:27017/todoApp"
+  "name": "js-todo-app - Development",
+  "mail": {
+    "host": "dev-mail-server"
+  },
+  "db": "mongodb://mongo:27018/todoapp"
 }

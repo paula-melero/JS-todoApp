@@ -27,12 +27,7 @@ router.get(
   "/me",
   auth,
   asyncMiddleware(async (req, res) => {
-    //check auth rights
-    if (req.user._id !== req.params.id)
-      return res
-        .status(401)
-        .json({ message: "Access denied. Cannot edit user with given ID." });
-
+    console.log("reached get one user");
     const user = await User.findById({ _id: req.user._id }).select("-password");
 
     if (!user)
