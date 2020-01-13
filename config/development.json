@@ -3,5 +3,5 @@
   "mail": {
     "host": "dev-mail-server"
   },
-  "db": "mongodb://mongo:27018/todoapp"
+  "db": "mongodb://mongo:27017/todoapp"
 }

@@ -2,12 +2,16 @@ version: "3"
 services:
   mongo:
     image: mongo
+
     ports:
-      - 27018:27018
+      - 27017:27018
 
   todo-app:
     build: ../js-todoapp
+    container_name: todo-app
     ports:
-      - 5001:4000
+      - 5000:5000
+    links:
+      - mongo
     depends_on:
       - mongo
