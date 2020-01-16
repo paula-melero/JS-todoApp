@@ -4,7 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "jest --watchAll --collect-coverage --verbose",
+    "test": "jest --collect-coverage --verbose",
+    "test:watch": "jest --watch",
     "start": "node server.js",
     "lambda-serve": "netlify-lambda serve functions",
     "lambda-build": "netlify-lambda build functions"

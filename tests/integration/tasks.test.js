@@ -1,43 +1,44 @@
-const request = require("supertest"); //function used to make HTTP requests
+require("dotenv").config();
+const app = require("../../server"); // Link to your server file
+const supertest = require("supertest");
+const request = supertest(app);
 const { Task } = require("../../models/tasks");
+const { User } = require("../../models/users");
 
-describe("api/tasks", async () => {
+describe("api/tasks", () => {
   let server;
+  let token;
+  let pagination;
 
   beforeEach(() => {
-    server = require("../../server");
+    token = new User({
+      username: "username",
+      password: "password"
+    }).generateAuthToken();
+    pagination = {
+      pageNumber: 1,
+      pageSize: 4
+    };
   });
 
   afterEach(async () => {
-    server.close();
     //clean up the test database
-    await Task.remove({});
+    await Task.deleteMany({});
   });
 
   describe("GET /", () => {
-    //   it("should return all tasks for a given user", async () => {
-    //     //populate the test database
-    //     Task.collection.insertMany([
-    //       {
-    //         title: "Test todo task",
-    //         description: "First task populated from test file"
-    //       },
-    //       {
-    //         title: "Test todo task 2",
-    //         description: "Second task populated from test file"
-    //       },
-    //       {
-    //         title: "Test todo task 3",
-    //         description: "Third task populated from test file"
-    //       },
-    //       {
-    //         title: "Test todo task 4",
-    //         description: "Fourth task populated from test file"
-    //       }
-    //     ]);
-    //     const res = await request(server).get("api/tasks");
-    //     expect(res.status).toBe(200);
-    //     expect(res.body.length).toBe(4);
-    //   });
+    it("should return 401 for a non auth user", async done => {
+      token = "";
+
+      const res = await request
+        .get("api/tasks/")
+        .set("x-auth-token", token)
+        .send(pagination);
+      // expect(req.query.pageNumber).toBe(1);
+      // expect(req.query.pageSize).toBe(4);
+
+      expect(res.status).toBe(401);
+      done();
+    });
   });
 });

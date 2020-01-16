@@ -1,4 +1,5 @@
 {
-    "jwtPrivateKey": "1234",
-    "db": "mongodb://localhost:27017/todoApp_tests"
+  "jwtPrivateKey": "1234",
+  "db": "mongodb://127.0.0.1/todoApp_tests",
+  "port": 5000
 }
