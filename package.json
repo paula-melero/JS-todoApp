@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest --collect-coverage --verbose",
     "test:watch": "jest --watch",
-    "start": "node server.js",
+    "start": "node start.js",
     "lambda-serve": "netlify-lambda serve functions",
     "lambda-build": "netlify-lambda build functions"
   },
