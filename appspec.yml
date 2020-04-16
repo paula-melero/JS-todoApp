@@ -1,0 +1,13 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/todoapp/api
+hooks:
+  BeforeInstall:
+    - location: scripts/install.sh
+      runas: root
+      timeout: 300
+  ApplicationStart:
+    - location: scripts/start.sh
+      timeout: 100
