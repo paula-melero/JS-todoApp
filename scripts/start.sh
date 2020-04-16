@@ -1,3 +1,3 @@
 #!/bin/sh
 export NODE_ENV=production
-npm start
+npm run start
