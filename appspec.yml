@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /home/todoapp/api
+    destination: /home/todoapp
 hooks:
   BeforeInstall:
     - location: scripts/install.sh
