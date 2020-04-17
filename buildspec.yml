@@ -12,6 +12,7 @@ phases:
     commands:
       - echo "build phase"
       - echo "running tests..."
+      - export jwtPrivateKey=1234
       - npm test
   post_build:
     commands:
