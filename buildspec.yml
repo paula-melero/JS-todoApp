@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     nodejs: 10
-  commands:
+    commands:
      - echo "installing nodejs"
   pre_build:
     commands:
