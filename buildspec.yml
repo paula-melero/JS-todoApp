@@ -1,7 +1,7 @@
 version: 0.2
 environment_variables:
   plaintext:
-    jwtPrivateKey:1234
+    jwtPrivateKey: "1234"
 phases:
   install:
     nodejs: 10
