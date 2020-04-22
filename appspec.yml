@@ -4,10 +4,10 @@ files:
   - source: /
     destination: /home/todoapp
 hooks:
-  ApplicationStop:
-    - location: scripts/stop.sh
-      runas: root
-      timeout: 600
+  # ApplicationStop:
+  #   - location: scripts/stop.sh
+  #     runas: root
+  #     timeout: 600
   ApplicationStart:
     - location: scripts/start.sh
       runas: root
