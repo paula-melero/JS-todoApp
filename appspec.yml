@@ -4,6 +4,7 @@ files:
   - source: /
     destination: /home/todoapp
 hooks:
+  # pipeline test comment
   ApplicationStop:
     - location: scripts/stop.sh
       runas: root
