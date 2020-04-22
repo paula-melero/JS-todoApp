@@ -4,6 +4,7 @@ files:
   - source: /
     destination: /home/todoapp
 hooks:
+  # comment for testing
   ApplicationStart:
     - location: scripts/start.sh
       runas: root
