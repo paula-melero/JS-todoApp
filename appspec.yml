@@ -4,10 +4,6 @@ files:
   - source: /
     destination: /home/todoapp
 hooks:
-  # BeforeInstall:
-  #   - location: scripts/env.sh
-  #     runas: root
-  #     timeout: 500
   ApplicationStop:
     - location: scripts/stop.sh
       runas: root
