@@ -1,0 +1,207 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CodePipeline infrastructure for todoapp (and Funnel APIs)
+Parameters:
+  SSHLocation:
+    Description: The IP address range that can be used to SSH into the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 199.47.55.50/32
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+Resources:
+  # -------- IAM Roles ----------
+  #   CodeDeployRole:
+  #     Type: 'AWS::IAM::Role'
+  #     Properties:
+  #       AssumeRolePolicyDocument:
+  #         Statement:
+  #         - Effect: 'Allow'
+  #         Principal:
+  #             Service:
+  #             - 'codedeploy.amazon.com'
+  #         Action:
+  #         - 'sts:AssumeRole'
+  EC2Role:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'ec2.amazonaws.com'
+            Action:
+              - sts:AssumeRole
+      Path: '/service-role/'
+
+  EC2RolePolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: 'AmazonS3ReadOnlyAccess'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ''
+            Effect: 'Allow'
+            Action:
+              - 's3:Get*'
+              - 's3:List*'
+            Resource: 'arn:aws:s3:::funnel-api-artifacts'
+      Roles:
+        - Ref: EC2Role
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: '/'
+      Roles:
+        - Ref: EC2Role
+
+  EC2AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AvailabilityZones:
+        # TO BE CONFIRMED ......
+        Fn::GetAZs: ''
+      LaunchTemplate:
+        LaunchTemplateId: 
+            Ref: LaunchTemplateConfig
+        Version: 
+            Fn::GetAtt: LaunchTemplateConfig.LatestVersionNumber
+      #TO BE CONFIRMED
+      MinSize: '2'
+      MaxSize: '4'
+      TargetGroupARNs:
+      - Ref: EC2TargetGroup
+
+  LaunchTemplateConfig:
+    Type: 'AWS::EC2::LaunchTemplate'
+    Properties:
+      LaunchTemplateName: TodoAppLaunchTemplate #change this to api name
+      LaunchTemplateData:
+        ImageId: 'ami-07ebfd5b3428b6f4d'
+        InstanceType: 't2.micro'
+        # TO DO: Change Key Name to existing key in Funnel or use CrateKeyPair to make one
+        KeyName: 'EC2 Tutorial'
+        SecurityGroups:
+          - Ref: InstanceSecurityGroup
+        UserData:
+          Fn::Base64:
+            Fn::Join:
+            - ''
+            - - "#!/bin/bash -xe\n"
+              - sudo apt-get update -y
+              - "\n"
+              - curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+              - "\n"
+              - sudo apt-get install -y nodejs
+              - "\n"
+              - sudo apt-get install python-pip -y
+              - "\n"
+              - sudo apt-get install ruby -y
+              - "\n"
+              - sudo apt-get install wget -y
+              - "\n"
+              - wget https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install
+              - "\n"
+              - sudo apt-add-repository ppa:brightbox/ruby-ng -y
+              - "\n"
+              - sudo apt-get update
+              - "\n"
+              - sudo apt-get install ruby2.2 ruby2.2-dev -y
+              - "\n"
+              - chmod +x ./install
+              - "\n"
+              - sudo ./install auto
+              - "\n"
+              - service codedeploy-agent status
+              - "\n"
+              - sudo service codedeploy-agent start
+              - "\n"
+              - sudo apt-get update -y
+              - "\n"
+              - sudo apt-get install python-pip -y
+              - "\n"
+              - sudo apt-get install ruby -y
+              - "\n"
+              - sudo apt-get install wget -y
+              - "\n"
+              - wget https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install
+              - "\n"
+              - sudo apt-add-repository ppa:brightbox/ruby-ng -y
+              - "\n"
+              - sudo apt-get update
+              - "\n"
+              - sudo apt-get install ruby2.2 ruby2.2-dev -y
+              - "\n"
+              - chmod +x ./install
+              - "\n"
+              - sudo ./install auto
+              - "\n"
+              - service codedeploy-agent status
+              - "\n"
+              - sudo service codedeploy-agent start
+              - "\n"
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access and HTTP from the Load Balancer only
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp:
+            Ref: SSHLocation
+        - IpProtocol: tcp
+          FromPort: '5000'
+          ToPort: '5000'
+          SourceSecurityGroupId:
+            Ref: LoadBalancerSecurityGroup
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP access from anywhere to the ALB
+      VpcId: 'vpc-0582847f'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      IpAddressType: ipv4
+      #Change this to API name
+      Name: 'TodoappALB'
+      SecurityGroups:
+        - Ref: LoadBalancerSecurityGroup
+      Subnets:
+      - subnet-43e91f1c
+      - subnet-a6d832c0
+      # TO DO: add Healthcheck
+
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn:
+            Ref: EC2TargetGroup
+      LoadBalancerArn:
+        Ref: ApplicationLoadBalancer
+      Port: '80'
+      Protocol: HTTP
+
+  EC2TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      #TODO: Enable Healthchecks
+      Name: TargetGroupForUsers
+      VpcId: 'vpc-0582847f'
+      Port: '80'
+      Protocol: HTTP
+      TargetType: instance
