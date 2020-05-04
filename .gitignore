@@ -3,3 +3,4 @@ node_modules/
 *.log
 coverage/
 .prettierignore
+parameters.json

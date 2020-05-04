@@ -6,9 +6,47 @@ Parameters:
     Type: String
     MinLength: '9'
     MaxLength: '18'
-    Default: 199.47.55.50/32
+    Default: 0.0.0.0/0
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+
+#   ProjectName:
+#     Default: TodoAppPipeline
+#     Description: The name of the project associated with this pipeline
+#     Type: String
+
+#   GitHubOwner: 
+#     NoEcho: true
+#     Description: Username of Github account 
+#     Type: String
+
+#   GitHubRepo:
+#     NoEcho: true
+#     Description: Name of repository where application code is stored
+#     Type: String
+
+#   GitHubRepoBranch:
+#     NoEcho: true
+#     Description: Codepipeline will be triggered when code is pushed to this branch
+#     Type: String
+
+#   GitHubOAuthToken:
+#     NoEcho: true
+#     Description: Authentication token for GitHub account
+#     Type: String
+
+# Metadata:
+#   AWS::Cloudformation::Interface:
+#     ParameterGroups:
+#     - Label: 
+#         default: 'Codepipeline Settings'
+#       Parameters:
+#       - !Ref ProjectName
+#     - Label:
+#         default: 'Github Settings'
+#       Parameters: 
+#       - !Ref GithubOwner
+#       - !Ref GithubRepo 
 Resources:
   # -------- IAM Roles ----------
   #   CodeDeployRole:
@@ -22,6 +60,40 @@ Resources:
   #             - 'codedeploy.amazon.com'
   #         Action:
   #         - 'sts:AssumeRole'
+  # CodePipelineRole:
+  #   Type: 'AWS::IAM::Role'
+  #   Properties: 
+  #     AssumeRolePolicyDocument:
+  #       Statement:
+  #       - Effect: 'Allow'
+  #       Principal:
+  #         Service: 
+  #         - 'codepipeline.amazon.com'
+  #       Action:
+  #       - 'sts:AssumeRole'
+
+  # MyCodePipeline:
+  #   Type: 'AWS::CodePipeline::CodePipeline'
+  #   Properties: 
+  #     ArtifactStore: 
+  #       Location: 'arn:aws:s3:::funnel-api-artifacts'
+  #       Type: S3
+  #     Name: !Ref 'ProjectName'
+  #     RoleArn:
+  #       Fn::GetAtt: CodePipelineRole.Arn
+  #     Stages:
+  #     - Name: GithubSource
+  #       Actions: 
+  #       - Name: AppSource
+  #         ActionTypeId:
+  #           Category: Source 
+  #           Owner: AWS
+  #           Provider: S3
+  #           Version: '1'
+  #         Configuration: 
+  #           S3Bucket: 
+
+   
   EC2Role:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -90,36 +162,12 @@ Resources:
           Fn::Base64:
             Fn::Join:
             - ''
-            - - "#!/bin/bash -xe\n"
+            - - "#!/bin/bash \n"
               - sudo apt-get update -y
               - "\n"
               - curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
               - "\n"
               - sudo apt-get install -y nodejs
-              - "\n"
-              - sudo apt-get install python-pip -y
-              - "\n"
-              - sudo apt-get install ruby -y
-              - "\n"
-              - sudo apt-get install wget -y
-              - "\n"
-              - wget https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install
-              - "\n"
-              - sudo apt-add-repository ppa:brightbox/ruby-ng -y
-              - "\n"
-              - sudo apt-get update
-              - "\n"
-              - sudo apt-get install ruby2.2 ruby2.2-dev -y
-              - "\n"
-              - chmod +x ./install
-              - "\n"
-              - sudo ./install auto
-              - "\n"
-              - service codedeploy-agent status
-              - "\n"
-              - sudo service codedeploy-agent start
-              - "\n"
-              - sudo apt-get update -y
               - "\n"
               - sudo apt-get install python-pip -y
               - "\n"
@@ -191,6 +239,7 @@ Resources:
         - Type: forward
           TargetGroupArn:
             Ref: EC2TargetGroup
+            
       LoadBalancerArn:
         Ref: ApplicationLoadBalancer
       Port: '80'
@@ -201,6 +250,16 @@ Resources:
     Properties:
       #TODO: Enable Healthchecks
       Name: TargetGroupForUsers
+      VpcId: 'vpc-0582847f'
+      Port: '80'
+      Protocol: HTTP
+      TargetType: instance
+
+  EC2TargetGroupTasks:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      #TODO: Enable Healthchecks
+      Name: TargetGroupForTasks
       VpcId: 'vpc-0582847f'
       Port: '80'
       Protocol: HTTP
