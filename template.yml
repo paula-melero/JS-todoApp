@@ -10,10 +10,17 @@ Parameters:
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
 
-#   ProjectName:
-#     Default: TodoAppPipeline
-#     Description: The name of the project associated with this pipeline
-#     Type: String
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+    - development
+    - production
+
+  # ProjectName:
+  #   Default: TodoAppPipeline
+  #   Description: The name of the project associated with this pipeline
+  #   Type: String
 
 #   GitHubOwner: 
 #     NoEcho: true
@@ -47,6 +54,19 @@ Parameters:
 #       Parameters: 
 #       - !Ref GithubOwner
 #       - !Ref GithubRepo 
+Mappings:
+  Environment: 
+    development:
+      S3Bucket: 'arn:aws:s3:::funnel-api-artifacts'
+      VPC: 'vpc-0582847f'
+      subnet1: 'subnet-43e91f1c'
+      subnet2: 'subnet-a6d832c0'
+
+    production:
+      S3Bucket: 'arn:aws:s3:::api-deploy-artifacts'
+      VPC: 'vpc-045f9c2156be51fde'
+      subnet1: 'subnet-0773a2ffe40177f8f'
+      subnet2: 'subnet-06c7c7f1ce988684d'
 Resources:
   # -------- IAM Roles ----------
   #   CodeDeployRole:
@@ -119,7 +139,7 @@ Resources:
             Action:
               - 's3:Get*'
               - 's3:List*'
-            Resource: 'arn:aws:s3:::funnel-api-artifacts'
+            Resource: !FindInMap [Environment, !Ref Environment, S3Bucket]
       Roles:
         - Ref: EC2Role
 
@@ -212,7 +232,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable HTTP access from anywhere to the ALB
-      VpcId: 'vpc-0582847f'
+      VpcId: !FindInMap [Environment, !Ref Environment, VPC]
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '80'
@@ -228,8 +248,8 @@ Resources:
       SecurityGroups:
         - Ref: LoadBalancerSecurityGroup
       Subnets:
-      - subnet-43e91f1c
-      - subnet-a6d832c0
+      - !FindInMap [Environment, !Ref Environment, subnet1]
+      - !FindInMap [Environment, !Ref Environment, subnet2]
       # TO DO: add Healthcheck
 
   ALBListener:
@@ -250,7 +270,7 @@ Resources:
     Properties:
       #TODO: Enable Healthchecks
       Name: TargetGroupForUsers
-      VpcId: 'vpc-0582847f'
+      VpcId: !FindInMap [Environment, !Ref Environment, VPC]
       Port: '80'
       Protocol: HTTP
       TargetType: instance
@@ -260,7 +280,7 @@ Resources:
     Properties:
       #TODO: Enable Healthchecks
       Name: TargetGroupForTasks
-      VpcId: 'vpc-0582847f'
+      VpcId: !FindInMap [Environment, !Ref Environment, VPC]
       Port: '80'
       Protocol: HTTP
       TargetType: instance
