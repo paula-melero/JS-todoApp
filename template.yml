@@ -175,7 +175,7 @@ Resources:
         ImageId: 'ami-07ebfd5b3428b6f4d'
         InstanceType: 't2.micro'
         IamInstanceProfile: 
-          GetAtt: EC2InstanceProfile.Arn
+          Fn::GetAtt: EC2InstanceProfile.Arn
         # TO DO: Change Key Name to existing key in Funnel or use CrateKeyPair to make one
         KeyName: 'EC2 Tutorial'
         SecurityGroups:
