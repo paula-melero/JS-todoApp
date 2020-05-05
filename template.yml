@@ -57,10 +57,14 @@ Parameters:
 Mappings:
   Environment: 
     development:
-      S3Bucket: 'arn:aws:s3:::codepipeline-us-east-1-795861002352'
+      S3Bucket: 'arn:aws:s3:::codepipeline-us-east-1-795861002352/*'
       VPC: 'vpc-0582847f'
       subnet1: 'subnet-43e91f1c'
       subnet2: 'subnet-a6d832c0'
+      subnet3: 'subnet-2f951062'
+      subnet4: 'subnet-37ea4539'
+      subnet5: 'subnet-6320d042'
+      subnet6: 'subnet-7109304f'
 
     production:
       S3Bucket: 'arn:aws:s3:::api-deploy-artifacts'
@@ -252,6 +256,11 @@ Resources:
       Subnets:
       - !FindInMap [Environment, !Ref Environment, subnet1]
       - !FindInMap [Environment, !Ref Environment, subnet2]
+      - !FindInMap [Environment, !Ref Environment, subnet3]
+      - !FindInMap [Environment, !Ref Environment, subnet4]
+      - !FindInMap [Environment, !Ref Environment, subnet5]
+      - !FindInMap [Environment, !Ref Environment, subnet6]
+
       # TO DO: add Healthcheck
 
   ALBListener:
@@ -271,6 +280,9 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       #TODO: Enable Healthchecks
+      HealthCheckPath: '/'
+      HealthCheckPort: '80'
+      HealthCheckProtocol: HTTP
       Name: TargetGroupForUsers
       VpcId: !FindInMap [Environment, !Ref Environment, VPC]
       Port: '80'
