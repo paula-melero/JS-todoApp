@@ -217,6 +217,13 @@ Resources:
               - "\n"
               - sudo service codedeploy-agent start
               - "\n"
+              - cd /home
+              - "\n"
+              - git clone https://github.com/paula-melero/JS-todoApp.git todoapp
+              - "\n"
+              - cd todoapp
+              - npm i && npm start
+              - "\n"
 
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -280,7 +287,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       #TODO: Enable Healthchecks
-      HealthCheckPath: '/'
+      HealthCheckPath: '/api/'
       HealthCheckPort: '80'
       HealthCheckProtocol: HTTP
       Name: TargetGroupForUsers
